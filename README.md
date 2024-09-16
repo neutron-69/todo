@@ -1,5 +1,5 @@
 ```python
-download the todo folder and run the following commands
+clone this repository and run the following commands
 ```
 
 ```bash
