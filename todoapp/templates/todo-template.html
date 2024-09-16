@@ -1,0 +1,242 @@
+{% load django_tables2 %}
+
+
+<head><div class="topnav">
+    <a class="active" href="{% url 'logout' %}">Log out</a>
+
+  </div>
+  <br>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List</title>
+    <style>
+    .topnav {
+    background-color: #333;
+    overflow: hidden;
+    }
+
+    .topnav a {
+    float: left;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    font-size: 17px;
+    }
+
+    .topnav a:hover {
+    background-color: #ddd;
+    color: black;
+    }
+
+    .topnav a.active {
+    background-color: #04AA6D;
+    color: white;
+    }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #121212; 
+            color: #e0e0e0; 
+        }
+
+        .card {
+            background-color: #1e1e1e;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            margin-bottom: 20px;
+            border: 1px solid #1a73e8; 
+        }
+
+        .card-header {
+            background-color: #1a73e8; 
+            color: #fff;
+            padding: 15px;
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+        }
+
+        .card-title {
+            margin: 0;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .todo-form {
+            background-color: #1e1e1e; 
+            padding: 20px;
+            border: 1px solid #1a73e8;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+        .todo-form input, .todo-form textarea {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            background-color: #121212;
+            border: 1px solid #333; 
+            border-radius: 5px;
+            color: #e0e0e0; 
+            box-sizing: border-box;
+        }
+
+        .todo-form input:focus, .todo-form textarea:focus {
+            outline: none;
+            border-color: #1a73e8; 
+        }
+
+        .todo-form button {
+            padding: 12px 20px;
+            background-color: #1a73e8; 
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .todo-form button:hover {
+            background-color: #155bb5; 
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: #1e1e1e; 
+            color: #e0e0e0; 
+        }
+
+        table th {
+            background-color: #1a73e8;
+            color: #fff;
+            padding: 12px;
+            text-align: left;
+        }
+
+        table td {
+            padding: 12px;
+            border-bottom: 1px solid #333; 
+        }
+
+        table tr:nth-child(even) {
+            background-color: #1b1b1b; 
+        }
+
+        #new_pagination {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        #new_pagination a {
+            color: #1a73e8; 
+            margin: 0 5px;
+            text-decoration: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        #new_pagination a:hover {
+            background-color: #1a73e8; 
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    {% block content %}
+    <div class="content">
+        <div class="todo-form">
+            <h4>Add New Todo Task</h4>
+            <form id="todo-form">
+                {% csrf_token %}
+                <input type="text" name="title" placeholder="Title" required>
+                <textarea name="description" placeholder="Description" rows="3" required></textarea>
+                <input type="date" style="width: auto;" name="due_date" required >
+                <button id="form-submit" type="submit">Add Task</button>
+            </form>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h4 class="card-title"> Todo List - Tasks ({{ table.rows|length }})</h4>
+                    </div>
+<table>
+    <thead>
+        <tr>
+            {% for column in table.columns %}
+                <th>{{ column.header }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for row in table.rows %}
+            {%if row.record.is_completed%}
+            <tr style="background-color: rgb(182, 229, 100);">
+            {%else%}
+            <tr style="background-color: rgb(229, 100, 100);">
+            {%endif%}
+                {% for column, cell in row.items %}
+                    <td style=" font-weight: bold; font-size: large; color:black ">{{ cell }}</td>
+                {% endfor %}
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endblock content %}
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        function addTodoTask(event) {
+            event.preventDefault(); 
+            const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+            const title = document.querySelector('input[name="title"]').value;
+            const description = document.querySelector('textarea[name="description"]').value;
+            const due_date = document.querySelector('input[name="due_date"]').value;
+            if(!title || !description) {
+                alert('Please fill the Form');
+                return;
+            }
+
+            var formData = {
+                csrfmiddlewaretoken: csrfToken,
+                title: title,
+                description: description,
+                due_date: due_date,
+            };
+
+
+            $.ajax({
+                type: 'POST',
+                url: '{% url "todo-add" %}', 
+                data: formData,
+                success: function(response) {
+                    window.location.reload();
+                },
+                error: function(xhr, status, error) {
+                    alert(xhr.responseJSON.message);
+                }
+            });
+        }
+        var submit_button = document.getElementById("form-submit");
+        submit_button.addEventListener("click", addTodoTask);
+
+
+        </script>
+        
+    
+</body>
+</html>
+
